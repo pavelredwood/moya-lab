@@ -757,11 +757,22 @@ function App() {
         
         // Calculate audio & video bitrates
         const audioBitrateBps = 128 * 1024; // 128 kbps
-        const totalBitrateBps = (targetBytes * 8) / totalDuration;
-        const videoBitrateBps = totalBitrateBps - audioBitrateBps;
+        const originalBitrateBps = (file.size * 8) / totalDuration;
+        
+        // Target total bitrate based on selected target MB
+        let totalBitrateBps = (targetBytes * 8) / totalDuration;
 
-        if (videoBitrateBps < 50 * 1024) {
-          throw new Error("Target size is too small for this video duration!");
+        // SAFEGUARD: Never inflate file size. If target is larger than original file, compress by at least 20%
+        if (totalBitrateBps > originalBitrateBps * 0.85) {
+          totalBitrateBps = originalBitrateBps * 0.8;
+          setLogs((prev) => [...prev, `[Squeezer] Target size is larger than original. Capping bitrate to 80% of original.`]);
+        }
+
+        let videoBitrateBps = totalBitrateBps - audioBitrateBps;
+
+        // Floor to prevent negative/unworkable video bitrates
+        if (videoBitrateBps < 100 * 1024) {
+          videoBitrateBps = 100 * 1024; // 100 kbps minimum
         }
 
         const videoBitrateKb = Math.floor(videoBitrateBps / 1000);
@@ -800,6 +811,9 @@ function App() {
         let filterString = "";
         let inputVar = "[0:v]";
 
+        const videoW = videoMeta.width;
+        const videoH = videoMeta.height;
+
         masks.forEach((mask, index) => {
           const start = mask.startPoint;
           const end = mask.endPoint;
@@ -808,29 +822,36 @@ function App() {
           const outVar = `[v_blur_${index}]`;
           const overlayVar = `[v_over_${index}]`;
 
-          // Generate crop coordinate expressions based on time 't'
-          let wExpr, hExpr, xExpr, yExpr;
+          // CROP dimensions must be constant to avoid FFmpeg crashing on dynamic width/height
+          // We also round to the nearest even number to ensure compatibility with H.264/YUV pixel formats
+          const cropW = Math.max(4, Math.round(start.w / 2) * 2);
+          const cropH = Math.max(4, Math.round(start.h / 2) * 2);
+
+          const sX = start.x.toFixed(2);
+          const sY = start.y.toFixed(2);
+
+          // Build expressions for time-based coordinate interpolation
+          let xExpr, yExpr;
           if (end) {
-            const dt = end.t - start.t;
-            wExpr = `(${start.w} + (t - ${start.t}) * (${end.w} - ${start.w}) / ${dt})`;
-            hExpr = `(${start.h} + (t - ${start.t}) * (${end.h} - ${start.h}) / ${dt})`;
-            xExpr = `(${start.x} + (t - ${start.t}) * (${end.x} - ${start.x}) / ${dt})`;
-            yExpr = `(${start.y} + (t - ${start.t}) * (${end.y} - ${start.y}) / ${dt})`;
+            const eX = end.x.toFixed(2);
+            const eY = end.y.toFixed(2);
+            const dt = (end.t - start.t).toFixed(3);
+            
+            xExpr = `clip(trunc(${sX} + (t - ${start.t.toFixed(3)}) * (${eX} - ${sX}) / ${dt}), 0, ${videoW - cropW})`;
+            yExpr = `clip(trunc(${sY} + (t - ${start.t.toFixed(3)}) * (${eY} - ${sY}) / ${dt}), 0, ${videoH - cropH})`;
           } else {
-            wExpr = `${start.w}`;
-            hExpr = `${start.h}`;
-            xExpr = `${start.x}`;
-            yExpr = `${start.y}`;
+            xExpr = `clip(trunc(${sX}), 0, ${videoW - cropW})`;
+            yExpr = `clip(trunc(${sY}), 0, ${videoH - cropH})`;
           }
 
           const enableExpr = end 
-            ? `between(t,${start.t},${end.t})` 
-            : `gte(t,${start.t})`;
+            ? `between(t,${start.t.toFixed(3)},${end.t.toFixed(3)})` 
+            : `gte(t,${start.t.toFixed(3)})`;
 
-          // 1. Crop and blur the sub-area
-          filterString += `${inputVar}crop=w='${wExpr}':h='${hExpr}':x='${xExpr}':y='${yExpr}',boxblur=luma_radius=${mask.blur}:luma_power=3${outVar}; `;
+          // 1. Crop and boxblur the moving area
+          filterString += `${inputVar}crop=w=${cropW}:h=${cropH}:x='${xExpr}':y='${yExpr}',boxblur=luma_radius=${mask.blur}:luma_power=3${outVar}; `;
           
-          // 2. Overlay it back on top of the original video
+          // 2. Overlay it back on top of the original video stream
           filterString += `${inputVar}${outVar}overlay=x='${xExpr}':y='${yExpr}':enable='${enableExpr}'${overlayVar}`;
           
           inputVar = overlayVar;
