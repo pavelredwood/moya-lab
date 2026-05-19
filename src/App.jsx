@@ -103,7 +103,8 @@ const TRANSLATIONS = {
     feat3Savings: "約72%削減",
     trust1: "完全無料・制限なし",
     trust2: "サーバー送信なし",
-    trust3: "日本語 / EN / RU 対応"
+    trust3: "日本語 / EN / RU 対応",
+    skipSqueeze: "ファイルサイズがすでに制限を下回っているため、圧縮をスキップして画質を100%保持しました！"
   },
   en: {
     title: "Moya Lab",
@@ -184,7 +185,8 @@ const TRANSLATIONS = {
     feat3Savings: "~72% smaller",
     trust1: "Completely free",
     trust2: "No server uploads",
-    trust3: "JA / EN / RU"
+    trust3: "JA / EN / RU",
+    skipSqueeze: "File size is already under the target limit. Skipped compression to preserve 100% quality!"
   },
   ru: {
     title: "Moya Lab",
@@ -265,7 +267,8 @@ const TRANSLATIONS = {
     feat3Savings: "~72% меньше",
     trust1: "Полностью бесплатно",
     trust2: "Без загрузки на серверы",
-    trust3: "JA / EN / RU"
+    trust3: "JA / EN / RU",
+    skipSqueeze: "Размер файла уже меньше целевого лимита. Сжатие пропущено для сохранения 100% качества!"
   }
 };
 
@@ -754,6 +757,17 @@ function App() {
         // --- SQUEEZER (2-PASS ENCODING) ---
         const totalDuration = videoMeta.duration;
         const targetBytes = targetSizeMb * 1024 * 1024;
+
+        // Skip compression entirely if the file already fits the target limit
+        if (file.size <= targetBytes) {
+          setLogs((prev) => [...prev, `[Squeezer] ${t.skipSqueeze} (${(file.size / 1024 / 1024).toFixed(2)} MB <= ${targetSizeMb} MB)`]);
+          await new Promise((r) => setTimeout(r, 600));
+          const url = URL.createObjectURL(file);
+          setOutputUrl(url);
+          setProcessing(false);
+          setProgress(100);
+          return;
+        }
         
         // Calculate audio & video bitrates
         const audioBitrateBps = 128 * 1024; // 128 kbps
