@@ -1178,7 +1178,7 @@ function App() {
                       <button
                         className="btn-neon-secondary"
                         style={{ padding: '4px 10px', fontSize: '0.72rem' }}
-                        onClick={() => setDanmakuText(prev => (prev ? prev + '\n' : '') + JAPANESE_MEMES.join('\n'))}
+                        onClick={() => setCommentsText(prev => (prev ? prev + '\n' : '') + JAPANESE_MEMES.join('\n'))}
                       >
                         {t.loadPresetMemes}
                       </button>
@@ -1186,8 +1186,8 @@ function App() {
                     <textarea
                       className="textarea-styled"
                       rows={6}
-                      value={danmakuText}
-                      onChange={(e) => setDanmakuText(e.target.value)}
+                      value={commentsText}
+                      onChange={(e) => setCommentsText(e.target.value)}
                       placeholder="草&#10;wwww&#10;神動画&#10;88888888"
                     />
                   </div>
@@ -1204,12 +1204,6 @@ function App() {
                         onChange={(e) => setDanmakuSpeed(Number(e.target.value))} />
                     </div>
                   </div>
-
-                  {fontLoading && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      <RefreshCw size={13} className="animate-spin" />{t.fontLoading}
-                    </div>
-                  )}
                 </>
               )}
 
