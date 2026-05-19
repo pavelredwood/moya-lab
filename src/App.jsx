@@ -852,16 +852,21 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* HEADER SECTION */}
-      <header className="app-header">
+      {/* HEADER — compact when file loaded, full when on landing */}
+      <header className={`app-header ${file ? 'app-header--editor' : ''}`}>
         <div className="header-logo-container">
-          <Shield size={32} className="logo-glow" />
-          <span className="logo-text">{t.title}</span>
+          <Shield size={file ? 22 : 32} className="logo-glow" style={{ transition: 'all 0.3s' }} />
+          <span className="logo-text" style={{ fontSize: file ? '1.1rem' : '1.6rem', transition: 'all 0.3s' }}>{t.title}</span>
+          {file && (
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '12px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {file.name}
+            </span>
+          )}
         </div>
         <div className="header-controls">
-          <select 
-            value={lang} 
-            onChange={(e) => setLang(e.target.value)} 
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
             className="language-selector"
           >
             <option value="ja">日本語</option>
@@ -869,7 +874,8 @@ function App() {
             <option value="ru">Русский</option>
           </select>
           {file && (
-            <button className="btn-neon-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={handleCloseFile}>
+            <button className="btn-neon-secondary" style={{ padding: '6px 14px', fontSize: '0.8rem' }} onClick={handleCloseFile}>
+              <X size={14} />
               {t.closeFile}
             </button>
           )}
@@ -1023,56 +1029,76 @@ function App() {
 
         </div>
       ) : (
-        // ACTIVE WORKSPACE (EDITOR)
+        // ===== ACTIVE WORKSPACE (EDITOR) =====
         <main className="app-workspace">
-          {/* Sidebar Navigation */}
+
+          {/* ── SIDEBAR ── */}
           <div className="sidebar-nav">
-            <button 
+
+            {/* Tab buttons */}
+            <button
               className={`tab-btn shield-tab ${activeTab === 'shield' ? 'active' : ''}`}
               onClick={() => setActiveTab('shield')}
             >
-              <Shield size={18} />
-              {t.tabShield}
+              <Shield size={20} />
+              <span>{t.tabShield}</span>
             </button>
-            <button 
+            <button
               className={`tab-btn danmaku-tab ${activeTab === 'danmaku' ? 'active' : ''}`}
               onClick={() => setActiveTab('danmaku')}
             >
-              <MessageSquare size={18} />
-              {t.tabDanmaku}
+              <MessageSquare size={20} />
+              <span>{t.tabDanmaku}</span>
             </button>
-            <button 
+            <button
               className={`tab-btn squeezer-tab ${activeTab === 'squeezer' ? 'active' : ''}`}
               onClick={() => setActiveTab('squeezer')}
             >
-              <FileVideo size={18} />
-              {t.tabSqueezer}
+              <FileVideo size={20} />
+              <span>{t.tabSqueezer}</span>
             </button>
 
-            {/* Video metadata overview */}
-            <div className="glass-panel" style={{ marginTop: 'auto', padding: '16px', fontSize: '0.85rem' }}>
-              <h4 style={{ marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '6px' }}>{t.videoInfo}</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-secondary)' }}>
-                <div>{t.duration}: <strong>{videoMeta?.duration.toFixed(2)}s</strong></div>
-                <div>Resolution: <strong>{videoMeta?.width}x{videoMeta?.height}</strong></div>
-                <div>{t.size}: <strong>{videoMeta?.sizeText}</strong></div>
+            {/* File info card */}
+            <div className="sidebar-file-card glass-panel">
+              <div className="sidebar-file-name">{file?.name}</div>
+              <div className="sidebar-file-meta">
+                <span>{videoMeta?.width}×{videoMeta?.height}</span>
+                <span>{videoMeta?.duration?.toFixed(1)}s</span>
+                <span>{videoMeta?.sizeText}</span>
               </div>
+            </div>
+
+            {/* FFmpeg status */}
+            <div className="sidebar-engine-status">
+              <span className="status-dot" style={{ background: ffmpegReady ? '#10b981' : ffmpegLoading ? '#f59e0b' : '#ef4444' }}></span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                {ffmpegLoading ? t.loadingFfmpeg : ffmpegReady ? 'FFmpeg ready' : 'FFmpeg offline'}
+              </span>
+              {ffmpegLoading && <RefreshCw size={11} className="animate-spin" style={{ color: 'var(--color-cyan)', marginLeft: 'auto' }} />}
             </div>
           </div>
 
-          {/* Core Panel splits */}
+          {/* ── CONTROL PANEL + VIDEO ── */}
           <div className="workspace-panel">
-            
-            {/* LEFT OPTIONS CONTROLS */}
+
+            {/* LEFT: Controls */}
             <div className="control-panel glass-panel">
-              
+
               {/* TAB 1: SHIELD (MOSAIC) */}
               {activeTab === 'shield' && (
                 <>
-                  <h3 className="panel-title" style={{ color: 'var(--color-violet)' }}><Shield size={20} />{t.shieldTitle}</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t.shieldDesc}</p>
-                  
-                  <button className="btn-neon" onClick={handleAddMask}>
+                  <div className="panel-header">
+                    <Shield size={18} style={{ color: 'var(--color-violet)' }} />
+                    <h3 className="panel-title">{t.shieldTitle}</h3>
+                  </div>
+                  <p className="panel-desc">{t.shieldDesc}</p>
+
+                  <div className="step-hint">
+                    <span className="step-num">1</span>
+                    <span>{t.hintShield}</span>
+                  </div>
+
+                  <button className="btn-neon btn-block" onClick={handleAddMask}>
                     <Plus size={16} />
                     {t.addMask}
                   </button>
@@ -1080,33 +1106,26 @@ function App() {
                   {masks.length > 0 && (
                     <div className="panel-section">
                       <span className="section-label">{t.maskList}</span>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
                         {masks.map((mask) => (
-                          <div 
-                            key={mask.id} 
+                          <div
+                            key={mask.id}
                             onClick={() => setActiveMaskId(mask.id)}
-                            className={`glass-panel`}
-                            style={{ 
-                              padding: '10px', 
-                              cursor: 'pointer', 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
-                              alignItems: 'center',
+                            className="mask-item glass-panel"
+                            style={{
                               borderColor: mask.id === activeMaskId ? 'var(--color-violet)' : 'rgba(255,255,255,0.06)',
-                              background: mask.id === activeMaskId ? 'rgba(139, 92, 246, 0.05)' : 'rgba(255,255,255,0.01)'
+                              background: mask.id === activeMaskId ? 'rgba(139, 92, 246, 0.06)' : 'rgba(255,255,255,0.01)'
                             }}
                           >
                             <div>
-                              <div style={{ fontWeight: 500, fontSize: '0.85rem' }}>Mask {mask.id.substring(0, 4)}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                {t.startT}: {mask.startPoint?.t.toFixed(1)}s {mask.endPoint && `| ${t.endT}: ${mask.endPoint.t.toFixed(1)}s`}
-                              </div>
+                              <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>Mask {mask.id.substring(0, 4)}</div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t.startT}: {mask.keyframe1?.t?.toFixed(2) ?? '–'}s → {t.endT}: {mask.keyframe2?.t?.toFixed(2) ?? '–'}s</div>
                             </div>
-                            <button 
-                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
-                              onClick={(e) => { e.stopPropagation(); handleDeleteMask(mask.id); }}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setMasks(prev => prev.filter(m => m.id !== mask.id)); }}
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
                             >
-                              <Trash2 size={16} />
+                              <X size={14} />
                             </button>
                           </div>
                         ))}
@@ -1115,186 +1134,186 @@ function App() {
                   )}
 
                   {activeMaskId && (
-                    <>
-                      <div className="panel-section" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
-                        <span className="section-label">{t.recordPoint}</span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
-                            className={`preset-btn flex-1 ${editingPoint === 'start' ? 'active' : ''}`}
-                            onClick={() => setEditingPoint('start')}
-                          >
-                            {t.editStart}
-                          </button>
-                          <button 
-                            className={`preset-btn flex-1 ${editingPoint === 'end' ? 'active' : ''}`}
-                            onClick={() => setEditingPoint('end')}
-                          >
-                            {t.editEnd}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="panel-section">
-                        <span className="section-label">{t.blurAmount}: {blurRadius}</span>
-                        <input 
-                          type="range" 
-                          min="10" 
-                          max="80" 
-                          value={blurRadius}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            setBlurRadius(val);
-                            setMasks(masks.map(m => m.id === activeMaskId ? { ...m, blur: val } : m));
-                          }}
+                    <div className="panel-section">
+                      <span className="section-label">{t.blurAmount}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <input
+                          type="range" min="5" max="50" value={blurAmount}
+                          onChange={(e) => setBlurAmount(Number(e.target.value))}
+                          style={{ flex: 1, accentColor: 'var(--color-violet)' }}
                         />
+                        <span style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)', color: 'var(--color-violet)', width: '28px' }}>{blurAmount}</span>
                       </div>
-                    </>
+                    </div>
                   )}
 
-                  <div className="info-banner">
-                    <HelpCircle size={16} style={{ flexShrink: 0, color: 'var(--color-cyan)' }} />
-                    <p style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>{t.hintShield}</p>
-                  </div>
+                  {activeMaskId && (
+                    <div className="panel-section">
+                      <span className="section-label">{t.maskList} — Keyframes</span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className="btn-neon-secondary" style={{ flex: 1, fontSize: '0.78rem', padding: '7px' }} onClick={() => handleRecordKeyframe('start')}>
+                          {t.editStart}
+                        </button>
+                        <button className="btn-neon-secondary" style={{ flex: 1, fontSize: '0.78rem', padding: '7px' }} onClick={() => handleRecordKeyframe('end')}>
+                          {t.editEnd}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
               {/* TAB 2: DANMAKU */}
               {activeTab === 'danmaku' && (
                 <>
-                  <h3 className="panel-title" style={{ color: 'var(--color-pink)' }}><MessageSquare size={20} />{t.danmakuTitle}</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t.danmakuDesc}</p>
+                  <div className="panel-header">
+                    <MessageSquare size={18} style={{ color: 'var(--color-pink)' }} />
+                    <h3 className="panel-title">{t.danmakuTitle}</h3>
+                  </div>
+                  <p className="panel-desc">{t.danmakuDesc}</p>
 
                   <div className="panel-section">
-                    <span className="section-label">{t.commentsLabel}</span>
-                    <textarea 
-                      rows={8}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span className="section-label">{t.commentsLabel}</span>
+                      <button
+                        className="btn-neon-secondary"
+                        style={{ padding: '4px 10px', fontSize: '0.72rem' }}
+                        onClick={() => setDanmakuText(prev => (prev ? prev + '\n' : '') + JAPANESE_MEMES.join('\n'))}
+                      >
+                        {t.loadPresetMemes}
+                      </button>
+                    </div>
+                    <textarea
                       className="textarea-styled"
-                      value={commentsText}
-                      onChange={(e) => setCommentsText(e.target.value)}
-                      placeholder={t.commentsPlaceholder}
+                      rows={6}
+                      value={danmakuText}
+                      onChange={(e) => setDanmakuText(e.target.value)}
+                      placeholder="草&#10;wwww&#10;神動画&#10;88888888"
                     />
                   </div>
 
-                  <button className="btn-neon-secondary" style={{ width: '100%' }} onClick={handleLoadMemes}>
-                    {t.loadPresetMemes}
-                  </button>
-
-                  <div className="panel-section">
-                    <span className="section-label">{t.fontSize}: {danmakuFontSize}</span>
-                    <input 
-                      type="range" 
-                      min="16" 
-                      max="72" 
-                      value={danmakuFontSize}
-                      onChange={(e) => setDanmakuFontSize(parseInt(e.target.value))}
-                    />
+                  <div className="panel-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <span className="section-label">{t.fontSize}</span>
+                      <input type="number" className="input-styled" value={danmakuFontSize} min="16" max="80"
+                        onChange={(e) => setDanmakuFontSize(Number(e.target.value))} />
+                    </div>
+                    <div>
+                      <span className="section-label">{t.speed}</span>
+                      <input type="number" className="input-styled" value={danmakuSpeed} min="50" max="600"
+                        onChange={(e) => setDanmakuSpeed(Number(e.target.value))} />
+                    </div>
                   </div>
 
-                  <div className="panel-section">
-                    <span className="section-label">{t.speed}: {danmakuSpeed} px/s</span>
-                    <input 
-                      type="range" 
-                      min="100" 
-                      max="300" 
-                      value={danmakuSpeed}
-                      onChange={(e) => setDanmakuSpeed(parseInt(e.target.value))}
-                    />
-                  </div>
+                  {fontLoading && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      <RefreshCw size={13} className="animate-spin" />{t.fontLoading}
+                    </div>
+                  )}
                 </>
               )}
 
               {/* TAB 3: SQUEEZER */}
               {activeTab === 'squeezer' && (
                 <>
-                  <h3 className="panel-title" style={{ color: 'var(--color-cyan)' }}><FileVideo size={20} />{t.squeezerTitle}</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{t.squeezerDesc}</p>
+                  <div className="panel-header">
+                    <FileVideo size={18} style={{ color: 'var(--color-cyan)' }} />
+                    <h3 className="panel-title">{t.squeezerTitle}</h3>
+                  </div>
+                  <p className="panel-desc">{t.squeezerDesc}</p>
 
                   <div className="panel-section">
                     <span className="section-label">{t.presets}</span>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <button 
-                        className={`preset-btn ${targetSizeMb === 9.9 ? 'active' : ''}`}
-                        onClick={() => { setTargetSizeMb(9.9); setCustomSizeText(""); }}
-                      >
-                        {t.discordFree}
-                      </button>
-                      <button 
-                        className={`preset-btn ${targetSizeMb === 19.9 ? 'active' : ''}`}
-                        onClick={() => { setTargetSizeMb(19.9); setCustomSizeText(""); }}
-                      >
-                        {t.lineSend}
-                      </button>
-                      <button 
-                        className={`preset-btn ${targetSizeMb === 24.9 ? 'active' : ''}`}
-                        onClick={() => { setTargetSizeMb(24.9); setCustomSizeText(""); }}
-                      >
-                        {t.discordNitro}
-                      </button>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {[
+                        { label: t.lineSend, value: 19.9 },
+                        { label: t.discordFree, value: 9.9 },
+                        { label: t.discordNitro, value: 24.9 },
+                      ].map(({ label, value }) => (
+                        <button
+                          key={value}
+                          onClick={() => setTargetSizeMb(value)}
+                          className="btn-neon-secondary"
+                          style={{
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            fontSize: '0.85rem',
+                            borderColor: targetSizeMb === value ? 'var(--color-cyan)' : 'rgba(255,255,255,0.07)',
+                            background: targetSizeMb === value ? 'rgba(6,182,212,0.08)' : 'transparent',
+                            color: targetSizeMb === value ? 'var(--color-cyan)' : 'var(--text-secondary)',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="panel-section" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '12px' }}>
+                  <div className="panel-section">
                     <span className="section-label">{t.customSize} (MB)</span>
-                    <input 
-                      type="number" 
-                      step="0.1"
-                      className="input-styled" 
-                      placeholder="e.g. 15"
-                      value={customSizeText}
-                      onChange={(e) => {
-                        setCustomSizeText(e.target.value);
-                        const val = parseFloat(e.target.value);
-                        if (!isNaN(val)) setTargetSizeMb(val);
-                      }}
+                    <input
+                      type="number" className="input-styled"
+                      value={targetSizeMb} min="1" max="500" step="0.1"
+                      onChange={(e) => setTargetSizeMb(parseFloat(e.target.value))}
                     />
                   </div>
 
-                  <div className="glass-panel" style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.02)', textAlign: 'center' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.targetSize}</span>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--color-cyan)', marginTop: '4px' }}>
-                      {targetSizeMb} MB
-                    </div>
+                  <div className="target-size-display">
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t.targetSize}</span>
+                    <span className="target-size-value">{targetSizeMb} MB</span>
                   </div>
                 </>
               )}
 
-              {/* CORE RENDERING PROCESS TRIGGERS */}
-              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* ── RUN BUTTON (always at bottom) ── */}
+              <div className="run-section">
                 {outputUrl && (
-                  <a href={outputUrl} download={`moyalab_export_${Date.now()}.mp4`} className="btn-neon" style={{ textDecoration: 'none', justifyContent: 'center', background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}>
+                  <a
+                    href={outputUrl}
+                    download={`moyalab_${activeTab}_${Date.now()}.mp4`}
+                    className="btn-download"
+                  >
                     <Download size={18} />
                     {t.download}
                   </a>
                 )}
-                <button 
-                  className="btn-neon" 
+                <button
+                  className={`btn-run ${processing ? 'btn-run--processing' : ''}`}
                   disabled={!ffmpegReady || processing || (activeTab === 'shield' && masks.length === 0)}
                   onClick={runFFmpegProcess}
-                  style={{ justifyContent: 'center' }}
                 >
                   {processing ? (
-                    <>
-                      <RefreshCw className="animate-spin" size={18} />
-                      {t.processing} ({progress}%)
-                    </>
+                    <><RefreshCw className="animate-spin" size={18} />{t.processing} {progress}%</>
                   ) : (
-                    <>
-                      <Settings size={18} />
-                      {t.process}
-                    </>
+                    <><Settings size={18} />{t.process}</>
                   )}
                 </button>
               </div>
 
-            </div>
+            </div>{/* end control-panel */}
 
-            {/* RIGHT SIDE VIDEO VIEWPORT & TERMINAL */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', minHeight: 0 }}>
-              
-              {/* VIDEO PLAYER & CANVAS PREVIEW WORKSPACE */}
+            {/* RIGHT: Video + Terminal */}
+            <div className="editor-column">
+
+              {/* Download success banner */}
+              {outputUrl && (
+                <div className="download-banner">
+                  <Download size={16} />
+                  <span>{t.success}</span>
+                  <a
+                    href={outputUrl}
+                    download={`moyalab_${activeTab}_${Date.now()}.mp4`}
+                    className="download-banner-btn"
+                  >
+                    {t.download}
+                  </a>
+                </div>
+              )}
+
+              {/* Video player + canvas */}
               <div className="editor-panel glass-panel flex-1">
                 <div className="player-wrapper">
-                  <video 
+                  <video
                     ref={videoRef}
                     src={videoUrl}
                     controls
@@ -1303,7 +1322,7 @@ function App() {
                     onLoadedMetadata={syncCanvasSize}
                   />
                   {activeTab === 'shield' && (
-                    <canvas 
+                    <canvas
                       ref={canvasRef}
                       className="canvas-overlay"
                       onMouseDown={handleMouseDown}
@@ -1311,21 +1330,17 @@ function App() {
                       onMouseUp={handleMouseUp}
                     />
                   )}
-
-                  {/* HTML5 Overlay simulation of flying danmaku inside preview just for visual fun */}
                   {activeTab === 'danmaku' && (
-                    <div className="danmaku-container">
-                      {/* Danmaku comments preview is simulated natively using simple canvas/DOM or overlays */}
-                    </div>
+                    <div className="danmaku-container"></div>
                   )}
                 </div>
 
-                {/* Progress bar overlay during processing */}
+                {/* Progress bar */}
                 {processing && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <div className="progress-wrap">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
                       <span>{t.processing}</span>
-                      <span>{progress}%</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-cyan)' }}>{progress}%</span>
                     </div>
                     <div className="progress-bar-container">
                       <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
@@ -1334,31 +1349,28 @@ function App() {
                 )}
               </div>
 
-              {/* LOG TERMINAL FOOTER */}
-              <div className="console-panel glass-panel">
-                <div className="console-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Terminal size={14} />
-                    <span>{t.terminal}</span>
-                  </div>
-                  <button 
-                    style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.75rem' }}
-                    onClick={() => setLogs([])}
+              {/* Collapsible terminal */}
+              <details className="terminal-collapsible">
+                <summary className="terminal-summary">
+                  <Terminal size={13} />
+                  <span>{t.terminal}</span>
+                  <span className="terminal-log-count">{logs.length}</span>
+                  <button
+                    className="terminal-clear"
+                    onClick={(e) => { e.preventDefault(); setLogs([]); }}
                   >
                     {t.clearLogs}
                   </button>
-                </div>
+                </summary>
                 <div className="console-logs">
-                  {logs.map((log, index) => (
-                    <div key={index}>{log}</div>
-                  ))}
+                  {logs.map((log, i) => <div key={i}>{log}</div>)}
                   <div ref={terminalEndRef} />
                 </div>
-              </div>
+              </details>
 
-            </div>
+            </div>{/* end editor-column */}
 
-          </div>
+          </div>{/* end workspace-panel */}
         </main>
       )}
     </div>
@@ -1366,3 +1378,4 @@ function App() {
 }
 
 export default App;
+
