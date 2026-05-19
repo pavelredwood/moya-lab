@@ -75,7 +75,23 @@ const TRANSLATIONS = {
     duration: "再生時間",
     size: "ファイルサイズ",
     success: "処理が完了しました！",
-    error: "エラーが発生しました。"
+    error: "エラーが発生しました。",
+    tryDemo: "デモ動画で試す (ファイル選択不要)",
+
+    // Landing Features
+    cardShieldTitle: "モザイクシールド (🛡️)",
+    cardShieldDesc: "動画内の顔、車のナンバー、個人情報などに動きに合わせたモザイク・ぼかしを追加します。",
+    cardDanmakuTitle: "弾幕オーバーレイ (💬)",
+    cardDanmakuDesc: "フォントサイズや速度を自由にカスタムして、ニコニコ動画風の流れるコメントを合成します。",
+    cardSqueezerTitle: "ターゲットサイズ圧縮 (📉)",
+    cardSqueezerDesc: "LINE（19.9MB）やDiscord（9.9MB）の容量制限に収まるように、最適なビットレートで2パス圧縮します。",
+    whyTitle: "モヤラボが選ばれる理由",
+    why1Title: "100% 安全・プライベート",
+    why1Desc: "ファイルはサーバーに送信されずブラウザで処理されるため、機密情報も漏洩しません。",
+    why2Title: "ネットワーク待機なし",
+    why2Desc: "ローカルCPUとWebAssemblyで動作するため、大容量ファイルも瞬時に読み込めます。",
+    why3Title: "完全無料・制限なし",
+    why3Desc: "サーバー運用費がかからないクライアント処理のため、回数制限なく完全無料です。"
   },
   en: {
     title: "Moya Lab",
@@ -132,7 +148,23 @@ const TRANSLATIONS = {
     duration: "Duration",
     size: "Size",
     success: "Video rendered successfully!",
-    error: "An error occurred during encoding."
+    error: "An error occurred during encoding.",
+    tryDemo: "Try with Demo Video (No upload needed)",
+
+    // Landing Features
+    cardShieldTitle: "Mosaic Shield (🛡️)",
+    cardShieldDesc: "Censor faces, license plates, and sensitive details with smooth keyframed blur tracks.",
+    cardDanmakuTitle: "Danmaku Overlay (💬)",
+    cardDanmakuDesc: "Compose right-to-left moving text overlays like NicoNico streams with full styling.",
+    cardSqueezerTitle: "Target size Compressor (📉)",
+    cardSqueezerDesc: "Compress videos under LINE (19.9MB) or Discord (9.9MB) limits with smart 2-pass encoding.",
+    whyTitle: "Why Choose Moya Lab?",
+    why1Title: "100% Client Privacy",
+    why1Desc: "Your files never leave your computer. Everything runs locally in your sandbox.",
+    why2Title: "No Network Uploads",
+    why2Desc: "Local rendering on your CPU via WASM. Zero network upload lag for huge files.",
+    why3Title: "Completely Free",
+    why3Desc: "No servers means no hosting costs, no subscriptions, and unlimited free uses."
   },
   ru: {
     title: "Moya Lab",
@@ -189,7 +221,23 @@ const TRANSLATIONS = {
     duration: "Длительность",
     size: "Размер",
     success: "Видео успешно закодировано!",
-    error: "Произошла ошибка при кодировании."
+    error: "Произошла ошибка при кодировании.",
+    tryDemo: "Попробовать с демо-видео (без загрузки)",
+
+    // Landing Features
+    cardShieldTitle: "Мозаика цензуры (🛡️)",
+    cardShieldDesc: "Скрытие лиц, автомобильных номеров и данных с помощью интерполяции ключевых кадров.",
+    cardDanmakuTitle: "Летящие комментарии (💬)",
+    cardDanmakuDesc: "Наложение бегущего текста в стиле стримов NicoNico с настройкой шрифта и скорости.",
+    cardSqueezerTitle: "Сжатие под лимит (📉)",
+    cardSqueezerDesc: "Эффективное 2-pass сжатие под лимиты LINE (19.9MB), Discord (9.9MB) или Telegram без потери качества.",
+    whyTitle: "Преимущества Moya Lab",
+    why1Title: "100% Приватно",
+    why1Desc: "Ваши видео обрабатываются в песочнице браузера и не загружаются в облако. Данные защищены.",
+    why2Title: "Без ожидания сети",
+    why2Desc: "Рендеринг локально на CPU через WASM — никакой траты трафика на загрузку файлов.",
+    why3Title: "Абсолютно бесплатно",
+    why3Desc: "Мы не тратим деньги на поддержание серверов кодирования, поэтому инструмент бесплатен навсегда."
   }
 };
 
@@ -202,8 +250,19 @@ const JAPANESE_MEMES = [
 // Instantiating the WebAssembly wrapper
 const ffmpeg = new FFmpeg();
 
+const getBrowserLanguage = () => {
+  try {
+    const browserLang = navigator.language || navigator.userLanguage;
+    if (browserLang.startsWith('ja')) return 'ja';
+    if (browserLang.startsWith('ru')) return 'ru';
+  } catch (e) {
+    console.warn("Language detection failed", e);
+  }
+  return 'en';
+};
+
 function App() {
-  const [lang, setLang] = useState('ja');
+  const [lang, setLang] = useState(getBrowserLanguage());
   const [activeTab, setActiveTab] = useState('shield');
   const [file, setFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
@@ -311,6 +370,28 @@ function App() {
       setActiveMaskId(null);
       URL.revokeObjectURL(video.src);
     };
+  };
+
+  const handleLoadDemo = () => {
+    setProcessing(false);
+    setOutputUrl(null);
+    setProgress(0);
+    const mockFile = {
+      name: "demo_blazes_sample.mp4",
+      size: 1258291
+    };
+    setFile(mockFile);
+    const demoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+    setVideoUrl(demoUrl);
+    setVideoMeta({
+      duration: 15.02,
+      width: 640,
+      height: 360,
+      sizeText: "1.2 MB"
+    });
+    setMasks([]);
+    setActiveMaskId(null);
+    setLogs((prev) => [...prev, "Loaded demo video: ForBiggerBlazes.mp4"]);
   };
 
   // Drag and drop event handlers
@@ -769,44 +850,115 @@ function App() {
 
       {/* CORE WORKSPACE */}
       {!file ? (
-        // LANDING PAGE (FILE UPLOAD)
-        <div className="landing-container flex-1">
-          <div 
-            className={`dropzone ${dragActive ? 'drag-active' : ''} glass-panel`}
-            onDragEnter={handleDrag}
-            onDragOver={handleDrag}
-            onDragLeave={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('file-input').click()}
-          >
-            <Upload size={64} className="upload-icon" />
-            <h3 className="dropzone-title">{t.dragDrop}</h3>
-            <p className="dropzone-sub">{t.browse}</p>
-            <input 
-              id="file-input" 
-              type="file" 
-              accept="video/*" 
-              style={{ display: 'none' }}
-              onChange={(e) => handleFileUpload(e.target.files[0])}
-            />
+        // LANDING PAGE (PRESENTATION + FILE UPLOAD)
+        <div className="landing-layout flex-1">
+          {/* Left Column: Uploader, Demo, and Badges */}
+          <div className="landing-left">
+            <div 
+              className={`dropzone ${dragActive ? 'drag-active' : ''} glass-panel`}
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => document.getElementById('file-input').click()}
+              style={{ width: '100%', height: '240px' }}
+            >
+              <Upload size={48} className="upload-icon" />
+              <h3 className="dropzone-title">{t.dragDrop}</h3>
+              <p className="dropzone-sub">{t.browse}</p>
+              <input 
+                id="file-input" 
+                type="file" 
+                accept="video/*" 
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileUpload(e.target.files[0])}
+              />
+            </div>
+            
+            <button 
+              type="button"
+              className="btn-neon" 
+              onClick={handleLoadDemo}
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              {t.tryDemo}
+            </button>
+
+            {/* Why Choose us badges */}
+            <div className="why-container">
+              <div className="why-card glass-panel">
+                <Shield size={20} className="why-icon" />
+                <div className="why-card-title">{t.why1Title}</div>
+                <div className="why-card-desc">{t.why1Desc}</div>
+              </div>
+              <div className="why-card glass-panel">
+                <RefreshCw size={20} className="why-icon" />
+                <div className="why-card-title">{t.why2Title}</div>
+                <div className="why-card-desc">{t.why2Desc}</div>
+              </div>
+              <div className="why-card glass-panel">
+                <Terminal size={20} className="why-icon" />
+                <div className="why-card-title">{t.why3Title}</div>
+                <div className="why-card-desc">{t.why3Desc}</div>
+              </div>
+            </div>
+
+            {/* FFmpeg core loading indicator */}
+            <div className="glass-panel" style={{ width: '100%', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.8rem' }}>
+              {ffmpegLoading ? (
+                <>
+                  <RefreshCw className="animate-spin" size={14} style={{ color: 'var(--color-cyan)' }} />
+                  <span>{t.loadingFfmpeg}</span>
+                </>
+              ) : (
+                <>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: ffmpegReady ? '#10b981' : '#ef4444' }}></div>
+                  <span>{ffmpegReady ? t.ffmpegLoaded : 'FFmpeg Core Offline'}</span>
+                </>
+              )}
+            </div>
           </div>
-          <p className="dropzone-sub" style={{ marginTop: '24px', opacity: 0.6 }}>
-            {t.noServer}
-          </p>
-          
-          {/* FFmpeg core loading indicator */}
-          <div className="glass-panel" style={{ marginTop: '30px', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {ffmpegLoading ? (
-              <>
-                <RefreshCw className="animate-spin" size={18} style={{ color: 'var(--color-cyan)' }} />
-                <span>{t.loadingFfmpeg}</span>
-              </>
-            ) : (
-              <>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: ffmpegReady ? '#10b981' : '#ef4444' }}></div>
-                <span>{ffmpegReady ? t.ffmpegLoaded : 'FFmpeg Core Offline'}</span>
-              </>
-            )}
+
+          {/* Right Column: Feature Cards with Images */}
+          <div className="landing-right">
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
+              {t.subtitle}
+            </h3>
+            
+            <div className="showcase-cards-container">
+              <div className="showcase-card glass-panel">
+                <img src="/images/mosaic_showcase.png" alt="Mosaic Shield" className="showcase-card-image" />
+                <div>
+                  <div className="showcase-card-title" style={{ color: 'var(--color-violet)' }}>
+                    <Shield size={16} />
+                    {t.cardShieldTitle}
+                  </div>
+                  <p className="showcase-card-desc">{t.cardShieldDesc}</p>
+                </div>
+              </div>
+
+              <div className="showcase-card glass-panel">
+                <img src="/images/danmaku_showcase.png" alt="Danmaku Gen" className="showcase-card-image" />
+                <div>
+                  <div className="showcase-card-title" style={{ color: 'var(--color-pink)' }}>
+                    <MessageSquare size={16} />
+                    {t.cardDanmakuTitle}
+                  </div>
+                  <p className="showcase-card-desc">{t.cardDanmakuDesc}</p>
+                </div>
+              </div>
+
+              <div className="showcase-card glass-panel">
+                <img src="/images/squeezer_showcase.png" alt="Squeezer" className="showcase-card-image" />
+                <div>
+                  <div className="showcase-card-title" style={{ color: 'var(--color-cyan)' }}>
+                    <FileVideo size={16} />
+                    {t.cardSqueezerTitle}
+                  </div>
+                  <p className="showcase-card-desc">{t.cardSqueezerDesc}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
