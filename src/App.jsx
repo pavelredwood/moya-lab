@@ -12,7 +12,11 @@ import {
   HelpCircle,
   Minimize2,
   Trash2,
-  Plus
+  Plus,
+  ArrowRight,
+  Lock,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -76,22 +80,30 @@ const TRANSLATIONS = {
     size: "ファイルサイズ",
     success: "処理が完了しました！",
     error: "エラーが発生しました。",
-    tryDemo: "デモ動画で試す (ファイル選択不要)",
+    tryDemo: "デモ動画で試す",
 
-    // Landing Features
-    cardShieldTitle: "モザイクシールド (🛡️)",
-    cardShieldDesc: "動画内の顔、車のナンバー、個人情報などに動きに合わせたモザイク・ぼかしを追加します。",
-    cardDanmakuTitle: "弾幕オーバーレイ (💬)",
-    cardDanmakuDesc: "フォントサイズや速度を自由にカスタムして、ニコニコ動画風の流れるコメントを合成します。",
-    cardSqueezerTitle: "ターゲットサイズ圧縮 (📉)",
-    cardSqueezerDesc: "LINE（19.9MB）やDiscord（9.9MB）の容量制限に収まるように、最適なビットレートで2パス圧縮します。",
-    whyTitle: "モヤラボが選ばれる理由",
-    why1Title: "100% 安全・プライベート",
-    why1Desc: "ファイルはサーバーに送信されずブラウザで処理されるため、機密情報も漏洩しません。",
-    why2Title: "ネットワーク待機なし",
-    why2Desc: "ローカルCPUとWebAssemblyで動作するため、大容量ファイルも瞬時に読み込めます。",
-    why3Title: "完全無料・制限なし",
-    why3Desc: "サーバー運用費がかからないクライアント処理のため、回数制限なく完全無料です。"
+    // Hero
+    heroTagline: "ブラウザ完結型 動画プライバシーツール",
+    heroTitle: "動画を加工する、\nサーバーに送らずに。",
+    heroSubtitle: "モザイク・弾幕・サイズ圧縮。すべての処理はあなたのブラウザの中だけで完結します。データは外に出ません。",
+    heroUpload: "動画ファイルをドロップ、またはクリックして選択",
+    heroDemoBtnLabel: "デモ動画で機能を試す",
+    heroPrivacy: "ファイルはサーバーに送信されません",
+    featuresHeading: "できること",
+    feat1Title: "モザイクシールド",
+    feat1Desc: "動画内の顔や車のナンバーにキーフレーム付きの滑らかなぼかしをかけます。オブジェクトが動いても追従します。",
+    feat1Before: "処理前",
+    feat1After: "処理後",
+    feat2Title: "弾幕ジェネレーター",
+    feat2Desc: "ニコニコ動画スタイルのコメントを動画に焼き込みます。フォントサイズや速度を自由に調整できます。",
+    feat3Title: "サイズ圧縮",
+    feat3Desc: "LINEやDiscordのファイルサイズ制限に収まるよう2パスエンコードで高品質に圧縮します。",
+    feat3Original: "元のファイル",
+    feat3Compressed: "圧縮後",
+    feat3Savings: "約72%削減",
+    trust1: "完全無料・制限なし",
+    trust2: "サーバー送信なし",
+    trust3: "日本語 / EN / RU 対応"
   },
   en: {
     title: "Moya Lab",
@@ -149,22 +161,30 @@ const TRANSLATIONS = {
     size: "Size",
     success: "Video rendered successfully!",
     error: "An error occurred during encoding.",
-    tryDemo: "Try with Demo Video (No upload needed)",
+    tryDemo: "Try with Demo Video",
 
-    // Landing Features
-    cardShieldTitle: "Mosaic Shield (🛡️)",
-    cardShieldDesc: "Censor faces, license plates, and sensitive details with smooth keyframed blur tracks.",
-    cardDanmakuTitle: "Danmaku Overlay (💬)",
-    cardDanmakuDesc: "Compose right-to-left moving text overlays like NicoNico streams with full styling.",
-    cardSqueezerTitle: "Target size Compressor (📉)",
-    cardSqueezerDesc: "Compress videos under LINE (19.9MB) or Discord (9.9MB) limits with smart 2-pass encoding.",
-    whyTitle: "Why Choose Moya Lab?",
-    why1Title: "100% Client Privacy",
-    why1Desc: "Your files never leave your computer. Everything runs locally in your sandbox.",
-    why2Title: "No Network Uploads",
-    why2Desc: "Local rendering on your CPU via WASM. Zero network upload lag for huge files.",
-    why3Title: "Completely Free",
-    why3Desc: "No servers means no hosting costs, no subscriptions, and unlimited free uses."
+    // Hero
+    heroTagline: "Browser-Based Video Privacy Tool",
+    heroTitle: "Edit your video.\nNever upload it.",
+    heroSubtitle: "Mosaic blur, danmaku comments, and size compression — all processed 100% inside your browser. Nothing leaves your device.",
+    heroUpload: "Drop a video file here, or click to browse",
+    heroDemoBtnLabel: "Try with demo video",
+    heroPrivacy: "Files are never sent to any server",
+    featuresHeading: "What you can do",
+    feat1Title: "Mosaic Shield",
+    feat1Desc: "Add smooth keyframed blur to faces, license plates or any moving object. The blur follows the subject automatically.",
+    feat1Before: "Before",
+    feat1After: "After",
+    feat2Title: "Danmaku Generator",
+    feat2Desc: "Burn in NicoNico-style flying comments onto your video. Customize font size, speed and content freely.",
+    feat3Title: "Size Compressor",
+    feat3Desc: "Smart 2-pass encoding to hit exact file size targets for LINE, Discord and other platforms.",
+    feat3Original: "Original",
+    feat3Compressed: "Compressed",
+    feat3Savings: "~72% smaller",
+    trust1: "Completely free",
+    trust2: "No server uploads",
+    trust3: "JA / EN / RU"
   },
   ru: {
     title: "Moya Lab",
@@ -222,22 +242,30 @@ const TRANSLATIONS = {
     size: "Размер",
     success: "Видео успешно закодировано!",
     error: "Произошла ошибка при кодировании.",
-    tryDemo: "Попробовать с демо-видео (без загрузки)",
+    tryDemo: "Попробовать с демо-видео",
 
-    // Landing Features
-    cardShieldTitle: "Мозаика цензуры (🛡️)",
-    cardShieldDesc: "Скрытие лиц, автомобильных номеров и данных с помощью интерполяции ключевых кадров.",
-    cardDanmakuTitle: "Летящие комментарии (💬)",
-    cardDanmakuDesc: "Наложение бегущего текста в стиле стримов NicoNico с настройкой шрифта и скорости.",
-    cardSqueezerTitle: "Сжатие под лимит (📉)",
-    cardSqueezerDesc: "Эффективное 2-pass сжатие под лимиты LINE (19.9MB), Discord (9.9MB) или Telegram без потери качества.",
-    whyTitle: "Преимущества Moya Lab",
-    why1Title: "100% Приватно",
-    why1Desc: "Ваши видео обрабатываются в песочнице браузера и не загружаются в облако. Данные защищены.",
-    why2Title: "Без ожидания сети",
-    why2Desc: "Рендеринг локально на CPU через WASM — никакой траты трафика на загрузку файлов.",
-    why3Title: "Абсолютно бесплатно",
-    why3Desc: "Мы не тратим деньги на поддержание серверов кодирования, поэтому инструмент бесплатен навсегда."
+    // Hero
+    heroTagline: "Приватный видеоредактор в браузере",
+    heroTitle: "Обработай видео.\nБез загрузки на сервер.",
+    heroSubtitle: "Мозаика, данмаку-субтитры и сжатие под лимит — всё работает прямо в вашем браузере. Файлы никуда не отправляются.",
+    heroUpload: "Перетащите видео сюда или нажмите для выбора",
+    heroDemoBtnLabel: "Попробовать на демо-видео",
+    heroPrivacy: "Файлы не покидают ваш компьютер",
+    featuresHeading: "Что умеет Moya Lab",
+    feat1Title: "Мозаика и цензура",
+    feat1Desc: "Плавное размытие с интерполяцией ключевых кадров на лицах, номерах и других объектах. Мозаика следует за движением.",
+    feat1Before: "До",
+    feat1After: "После",
+    feat2Title: "Данмаку-субтитры",
+    feat2Desc: "Летящие справа налево комментарии в стиле NicoNico. Настройте размер шрифта, скорость и текст.",
+    feat3Title: "Сжатие под лимит",
+    feat3Desc: "2-pass кодирование для точного попадания в лимиты LINE, Discord и других платформ.",
+    feat3Original: "Оригинал",
+    feat3Compressed: "Сжато",
+    feat3Savings: "~72% меньше",
+    trust1: "Полностью бесплатно",
+    trust2: "Без загрузки на серверы",
+    trust3: "JA / EN / RU"
   }
 };
 
@@ -850,116 +878,149 @@ function App() {
 
       {/* CORE WORKSPACE */}
       {!file ? (
-        // LANDING PAGE (PRESENTATION + FILE UPLOAD)
-        <div className="landing-layout flex-1">
-          {/* Left Column: Uploader, Demo, and Badges */}
-          <div className="landing-left">
-            <div 
-              className={`dropzone ${dragActive ? 'drag-active' : ''} glass-panel`}
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => document.getElementById('file-input').click()}
-              style={{ width: '100%', height: '240px' }}
-            >
-              <Upload size={48} className="upload-icon" />
-              <h3 className="dropzone-title">{t.dragDrop}</h3>
-              <p className="dropzone-sub">{t.browse}</p>
-              <input 
-                id="file-input" 
-                type="file" 
-                accept="video/*" 
-                style={{ display: 'none' }}
-                onChange={(e) => handleFileUpload(e.target.files[0])}
-              />
-            </div>
-            
-            <button 
-              type="button"
-              className="btn-neon" 
-              onClick={handleLoadDemo}
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              {t.tryDemo}
-            </button>
+        // ===== LANDING PAGE =====
+        <div className="landing-page flex-1">
 
-            {/* Why Choose us badges */}
-            <div className="why-container">
-              <div className="why-card glass-panel">
-                <Shield size={20} className="why-icon" />
-                <div className="why-card-title">{t.why1Title}</div>
-                <div className="why-card-desc">{t.why1Desc}</div>
+          {/* HERO */}
+          <section className="hero-section">
+            <div className="hero-tagline">{t.heroTagline}</div>
+            <h1 className="hero-title">{t.heroTitle}</h1>
+            <p className="hero-subtitle">{t.heroSubtitle}</p>
+
+            <div className="hero-actions">
+              {/* Upload zone */}
+              <div
+                className={`hero-upload-zone ${dragActive ? 'drag-active' : ''}`}
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById('file-input').click()}
+              >
+                <Upload size={28} className="upload-icon" />
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>{t.heroUpload}</span>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept="video/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleFileUpload(e.target.files[0])}
+                />
               </div>
-              <div className="why-card glass-panel">
-                <RefreshCw size={20} className="why-icon" />
-                <div className="why-card-title">{t.why2Title}</div>
-                <div className="why-card-desc">{t.why2Desc}</div>
+
+              <div className="hero-or-divider">or</div>
+
+              <button type="button" className="hero-demo-btn" onClick={handleLoadDemo}>
+                <FileVideo size={16} />
+                {t.heroDemoBtnLabel}
+              </button>
+
+              <div className="hero-privacy-note">
+                <span className="lock-dot"></span>
+                {t.heroPrivacy}
               </div>
-              <div className="why-card glass-panel">
-                <Terminal size={20} className="why-icon" />
-                <div className="why-card-title">{t.why3Title}</div>
-                <div className="why-card-desc">{t.why3Desc}</div>
+
+              {/* FFmpeg status pill */}
+              <div className="ffmpeg-pill">
+                {ffmpegLoading ? (
+                  <><RefreshCw size={12} className="animate-spin" style={{ color: 'var(--color-cyan)' }} /><span>{t.loadingFfmpeg}</span></>
+                ) : (
+                  <><span className="status-dot" style={{ background: ffmpegReady ? '#10b981' : '#ef4444' }}></span><span>{ffmpegReady ? t.ffmpegLoaded : 'FFmpeg offline'}</span></>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* FEATURE CARDS */}
+          <section className="features-section">
+            <div className="features-heading">{t.featuresHeading}</div>
+
+            {/* Feature 1: Mosaic */}
+            <div className="feature-card">
+              <div className="feature-card-info">
+                <div className="feature-card-icon violet"><Shield size={20} /></div>
+                <div className="feature-card-title">{t.feat1Title}</div>
+                <p className="feature-card-desc">{t.feat1Desc}</p>
+              </div>
+              <div className="feature-card-visual" style={{ background: 'rgba(139,92,246,0.03)' }}>
+                <div className="mosaic-demo">
+                  <div className="mosaic-demo-side mosaic-before">
+                    <div className="mosaic-before-face"></div>
+                    <div className="mosaic-before-body"></div>
+                    <span className="mosaic-label">{t.feat1Before}</span>
+                  </div>
+                  <ArrowRight size={18} className="mosaic-arrow" />
+                  <div className="mosaic-demo-side mosaic-after">
+                    <div className="mosaic-blur-box"></div>
+                    <div className="mosaic-after-body"></div>
+                    <span className="mosaic-label">{t.feat1After}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* FFmpeg core loading indicator */}
-            <div className="glass-panel" style={{ width: '100%', padding: '10px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.8rem' }}>
-              {ffmpegLoading ? (
-                <>
-                  <RefreshCw className="animate-spin" size={14} style={{ color: 'var(--color-cyan)' }} />
-                  <span>{t.loadingFfmpeg}</span>
-                </>
-              ) : (
-                <>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: ffmpegReady ? '#10b981' : '#ef4444' }}></div>
-                  <span>{ffmpegReady ? t.ffmpegLoaded : 'FFmpeg Core Offline'}</span>
-                </>
-              )}
+            {/* Feature 2: Danmaku */}
+            <div className="feature-card">
+              <div className="feature-card-visual" style={{ background: 'rgba(236,72,153,0.03)' }}>
+                <div className="danmaku-demo">
+                  <span className="danmaku-demo-text">神動画きたー！</span>
+                  <span className="danmaku-demo-text">wwww</span>
+                  <span className="danmaku-demo-text">ここ好き❤️</span>
+                  <span className="danmaku-demo-text">88888888</span>
+                </div>
+              </div>
+              <div className="feature-card-info">
+                <div className="feature-card-icon pink"><MessageSquare size={20} /></div>
+                <div className="feature-card-title">{t.feat2Title}</div>
+                <p className="feature-card-desc">{t.feat2Desc}</p>
+              </div>
+            </div>
+
+            {/* Feature 3: Squeezer */}
+            <div className="feature-card">
+              <div className="feature-card-info">
+                <div className="feature-card-icon cyan"><FileVideo size={20} /></div>
+                <div className="feature-card-title">{t.feat3Title}</div>
+                <p className="feature-card-desc">{t.feat3Desc}</p>
+              </div>
+              <div className="feature-card-visual" style={{ background: 'rgba(6,182,212,0.03)' }}>
+                <div className="squeezer-demo">
+                  <div className="squeezer-bar-row">
+                    <span className="squeezer-bar-label">{t.feat3Original}</span>
+                    <div className="squeezer-bar-track">
+                      <div className="squeezer-bar-fill original"></div>
+                    </div>
+                    <span className="squeezer-bar-size">120 MB</span>
+                  </div>
+                  <div className="squeezer-bar-row">
+                    <span className="squeezer-bar-label">{t.feat3Compressed}</span>
+                    <div className="squeezer-bar-track">
+                      <div className="squeezer-bar-fill compressed"></div>
+                    </div>
+                    <span className="squeezer-bar-size">9.9 MB</span>
+                  </div>
+                  <div className="squeezer-bar-savings">{t.feat3Savings}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* TRUST STRIP */}
+          <div className="trust-section">
+            <div className="trust-badge">
+              <div className="trust-badge-icon"><Zap size={14} /></div>
+              {t.trust1}
+            </div>
+            <div className="trust-badge">
+              <div className="trust-badge-icon"><Lock size={14} /></div>
+              {t.trust2}
+            </div>
+            <div className="trust-badge">
+              <div className="trust-badge-icon"><Globe size={14} /></div>
+              {t.trust3}
             </div>
           </div>
 
-          {/* Right Column: Feature Cards with Images */}
-          <div className="landing-right">
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '8px' }}>
-              {t.subtitle}
-            </h3>
-            
-            <div className="showcase-cards-container">
-              <div className="showcase-card glass-panel">
-                <img src="/images/mosaic_showcase.png" alt="Mosaic Shield" className="showcase-card-image" />
-                <div>
-                  <div className="showcase-card-title" style={{ color: 'var(--color-violet)' }}>
-                    <Shield size={16} />
-                    {t.cardShieldTitle}
-                  </div>
-                  <p className="showcase-card-desc">{t.cardShieldDesc}</p>
-                </div>
-              </div>
-
-              <div className="showcase-card glass-panel">
-                <img src="/images/danmaku_showcase.png" alt="Danmaku Gen" className="showcase-card-image" />
-                <div>
-                  <div className="showcase-card-title" style={{ color: 'var(--color-pink)' }}>
-                    <MessageSquare size={16} />
-                    {t.cardDanmakuTitle}
-                  </div>
-                  <p className="showcase-card-desc">{t.cardDanmakuDesc}</p>
-                </div>
-              </div>
-
-              <div className="showcase-card glass-panel">
-                <img src="/images/squeezer_showcase.png" alt="Squeezer" className="showcase-card-image" />
-                <div>
-                  <div className="showcase-card-title" style={{ color: 'var(--color-cyan)' }}>
-                    <FileVideo size={16} />
-                    {t.cardSqueezerTitle}
-                  </div>
-                  <p className="showcase-card-desc">{t.cardSqueezerDesc}</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       ) : (
         // ACTIVE WORKSPACE (EDITOR)
