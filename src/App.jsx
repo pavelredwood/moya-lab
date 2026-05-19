@@ -442,6 +442,49 @@ function App() {
     }
   };
 
+  // Get actual rendering boundaries of the video inside the video element (containing object-fit: contain)
+  const getVideoContentRect = () => {
+    const video = videoRef.current;
+    if (!video || !videoMeta) {
+      return { x: 0, y: 0, w: 0, h: 0, scaleToVideoX: 1, scaleToVideoY: 1, scaleToCanvasX: 1, scaleToCanvasY: 1 };
+    }
+
+    const videoWidth = videoMeta.width;
+    const videoHeight = videoMeta.height;
+    const elementWidth = video.clientWidth;
+    const elementHeight = video.clientHeight;
+
+    const videoRatio = videoWidth / videoHeight;
+    const elementRatio = elementWidth / elementHeight;
+
+    let renderW, renderH, renderX, renderY;
+
+    if (elementRatio > videoRatio) {
+      // Element is wider than video -> Pillarbox (bars on left/right)
+      renderH = elementHeight;
+      renderW = renderH * videoRatio;
+      renderX = (elementWidth - renderW) / 2;
+      renderY = 0;
+    } else {
+      // Element is taller than video -> Letterbox (bars on top/bottom)
+      renderW = elementWidth;
+      renderH = renderW / videoRatio;
+      renderX = 0;
+      renderY = (elementHeight - renderH) / 2;
+    }
+
+    return {
+      x: renderX,
+      y: renderY,
+      w: renderW,
+      h: renderH,
+      scaleToVideoX: videoWidth / renderW,
+      scaleToVideoY: videoHeight / renderH,
+      scaleToCanvasX: renderW / videoWidth,
+      scaleToCanvasY: renderH / videoHeight
+    };
+  };
+
   // Canvas drawing for Mosaic Mask keyframes
   const drawMasksOnCanvas = () => {
     const canvas = canvasRef.current;
@@ -450,6 +493,8 @@ function App() {
 
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const rect = getVideoContentRect();
 
     masks.forEach((mask) => {
       const active = mask.id === activeMaskId;
@@ -489,13 +534,10 @@ function App() {
       }
 
       // Convert scale from actual video resolution to canvas coordinates
-      const scaleX = canvas.width / videoMeta.width;
-      const scaleY = canvas.height / videoMeta.height;
-
-      const drawX = x * scaleX;
-      const drawY = y * scaleY;
-      const drawW = w * scaleX;
-      const drawH = h * scaleY;
+      const drawX = rect.x + (x * rect.scaleToCanvasX);
+      const drawY = rect.y + (y * rect.scaleToCanvasY);
+      const drawW = w * rect.scaleToCanvasX;
+      const drawH = h * rect.scaleToCanvasY;
 
       // Draw bounding box
       ctx.lineWidth = active ? 3 : 1.5;
@@ -586,9 +628,9 @@ function App() {
     const video = videoRef.current;
     if (!canvas || !video) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
+    const canvasRect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - canvasRect.left;
+    const currentY = e.clientY - canvasRect.top;
 
     const startX = Math.min(drawStart.x, currentX);
     const startY = Math.min(drawStart.y, currentY);
@@ -597,16 +639,21 @@ function App() {
 
     if (width < 5 || height < 5) return; // Too small
 
-    // Convert coordinates to actual video resolution
-    const scaleX = videoMeta.width / canvas.width;
-    const scaleY = videoMeta.height / canvas.height;
+    const rect = getVideoContentRect();
+
+    // Convert mouse coordinates on canvas to actual video coordinate space
+    const videoX = (startX - rect.x) * rect.scaleToVideoX;
+    const videoY = (startY - rect.y) * rect.scaleToVideoY;
+    const videoW = width * rect.scaleToVideoX;
+    const videoH = height * rect.scaleToVideoY;
 
     const point = {
       t: currentTime,
-      x: startX * scaleX,
-      y: startY * scaleY,
-      w: width * scaleX,
-      h: height * scaleY
+      // Constrain inside actual video boundaries
+      x: Math.max(0, Math.min(videoMeta.width, videoX)),
+      y: Math.max(0, Math.min(videoMeta.height, videoY)),
+      w: Math.max(0, Math.min(videoMeta.width - videoX, videoW)),
+      h: Math.max(0, Math.min(videoMeta.height - videoY, videoH))
     };
 
     setMasks((prevMasks) =>
@@ -702,7 +749,7 @@ function App() {
           '-pass', '1',
           '-an',
           '-f', 'null',
-          'NUL'
+          '/dev/null'
         ]);
 
         // PASS 2
@@ -868,13 +915,20 @@ function App() {
             value={lang}
             onChange={(e) => setLang(e.target.value)}
             className="language-selector"
+            disabled={processing}
+            style={{ opacity: processing ? 0.5 : 1, cursor: processing ? 'not-allowed' : 'pointer' }}
           >
             <option value="ja">日本語</option>
             <option value="en">English</option>
             <option value="ru">Русский</option>
           </select>
           {file && (
-            <button className="btn-neon-secondary" style={{ padding: '6px 14px', fontSize: '0.8rem' }} onClick={handleCloseFile}>
+            <button 
+              className="btn-neon-secondary" 
+              style={{ padding: '6px 14px', fontSize: '0.8rem', opacity: processing ? 0.5 : 1, cursor: processing ? 'not-allowed' : 'pointer' }} 
+              onClick={handleCloseFile}
+              disabled={processing}
+            >
               <X size={14} />
               {t.closeFile}
             </button>
@@ -1038,21 +1092,27 @@ function App() {
             {/* Tab buttons */}
             <button
               className={`tab-btn shield-tab ${activeTab === 'shield' ? 'active' : ''}`}
-              onClick={() => setActiveTab('shield')}
+              onClick={() => !processing && setActiveTab('shield')}
+              disabled={processing}
+              style={{ opacity: processing ? 0.5 : 1, cursor: processing ? 'not-allowed' : 'pointer' }}
             >
               <Shield size={20} />
               <span>{t.tabShield}</span>
             </button>
             <button
               className={`tab-btn danmaku-tab ${activeTab === 'danmaku' ? 'active' : ''}`}
-              onClick={() => setActiveTab('danmaku')}
+              onClick={() => !processing && setActiveTab('danmaku')}
+              disabled={processing}
+              style={{ opacity: processing ? 0.5 : 1, cursor: processing ? 'not-allowed' : 'pointer' }}
             >
               <MessageSquare size={20} />
               <span>{t.tabDanmaku}</span>
             </button>
             <button
               className={`tab-btn squeezer-tab ${activeTab === 'squeezer' ? 'active' : ''}`}
-              onClick={() => setActiveTab('squeezer')}
+              onClick={() => !processing && setActiveTab('squeezer')}
+              disabled={processing}
+              style={{ opacity: processing ? 0.5 : 1, cursor: processing ? 'not-allowed' : 'pointer' }}
             >
               <FileVideo size={20} />
               <span>{t.tabSqueezer}</span>
