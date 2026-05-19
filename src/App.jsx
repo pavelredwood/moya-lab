@@ -338,6 +338,33 @@ function App() {
     initFfmpeg();
   }, []);
 
+  // 2. Dynamic SEO updates when language changes
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    
+    // Update Document Title
+    const currentTranslations = TRANSLATIONS[lang] || TRANSLATIONS.ja;
+    document.title = `${currentTranslations.title} - ${currentTranslations.subtitle}`;
+
+    // Update Meta Description dynamically
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    
+    let seoDesc = "";
+    if (lang === 'ja') {
+      seoDesc = "Moya Lab (モヤラボ) - ブラウザだけで完結する、安全・高速な動画処理ツール。モザイクシールド、ニコニコ風弾幕、動画圧縮。サーバーへのアップロードなしで100%プライベート。";
+    } else if (lang === 'ru') {
+      seoDesc = "Moya Lab (мояラボ) - Безопасный клиентский инструмент для обработки видео. Цензура и размытие, летящие комментарии Danmaku, сжатие под лимиты. 100% конфиденциально.";
+    } else {
+      seoDesc = "Moya Lab (MoyaLab) - Safe, client-side video processing tools. Mosaic Privacy Shield, Nico Nico style Danmaku Overlay, and video compressor. 100% private, no server uploads.";
+    }
+    metaDescription.setAttribute('content', seoDesc);
+  }, [lang]);
+
   const initFfmpeg = async () => {
     if (ffmpegReady || ffmpegLoading) return;
     setFfmpegLoading(true);
@@ -1427,6 +1454,18 @@ function App() {
           </div>{/* end workspace-panel */}
         </main>
       )}
+
+      {/* SEMANTIC FOOTER */}
+      <footer className="app-footer">
+        <div className="footer-content">
+          <p>© {new Date().getFullYear()} Moya Lab (モヤラボ) - Privacy & Media Studio.</p>
+          <div className="footer-links">
+            <a href="https://github.com/pavelredwood/moya-lab" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <span>•</span>
+            <span>{t.noServer}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -43,6 +43,34 @@ test.describe('Moya Lab Web App Tests', () => {
     await expect(page.locator('.hero-title')).toContainText(/動画を加工する/i);
   });
 
+  test('should update SEO metadata and language tags on language switch', async ({ page }) => {
+    const selector = page.locator('.language-selector');
+
+    // Switch to Japanese explicitly to test Japanese defaults
+    await selector.selectOption('ja');
+    await expect(page).toHaveTitle(/モヤラボ - Moya Lab - 肖像権/i);
+    let htmlLang = await page.evaluate(() => document.documentElement.lang);
+    expect(htmlLang).toBe('ja');
+    let metaDesc = await page.evaluate(() => document.querySelector('meta[name="description"]').getAttribute('content'));
+    expect(metaDesc).toContain('ブラウザだけで完結する');
+
+    // Switch to English
+    await selector.selectOption('en');
+    await expect(page).toHaveTitle(/Moya Lab - Moya Lab - Privacy/i);
+    htmlLang = await page.evaluate(() => document.documentElement.lang);
+    expect(htmlLang).toBe('en');
+    metaDesc = await page.evaluate(() => document.querySelector('meta[name="description"]').getAttribute('content'));
+    expect(metaDesc).toContain('client-side video processing');
+
+    // Switch to Russian
+    await selector.selectOption('ru');
+    await expect(page).toHaveTitle(/Moya Lab - Moya Lab - Медиа/i);
+    htmlLang = await page.evaluate(() => document.documentElement.lang);
+    expect(htmlLang).toBe('ru');
+    metaDesc = await page.evaluate(() => document.querySelector('meta[name="description"]').getAttribute('content'));
+    expect(metaDesc).toContain('Безопасный клиентский инструмент');
+  });
+
   test('should load demo video and navigate through workspace tabs', async ({ page }) => {
     // Click on the Try Demo button
     const demoBtn = page.locator('.hero-demo-btn');
